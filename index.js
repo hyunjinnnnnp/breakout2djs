@@ -21,17 +21,32 @@ var brickPadding=3;
 var brickOffsetTop=20;
 var brickOffsetLeft=25;
 
+var score =0;
+
+
 var bricks = [];
 for(var c=0; c < brickColumnCount; c++){    
     bricks[c]= [];
     for(var r=0; r < brickRowCount; r++){
-        bricks[c][r]={x: 0, y: 0};
+        bricks[c][r]={x: 0, y: 0, status:1};  
+        //status가1이면 벽돌을그리고 아니면(공에 맞으면) 안그린다
     }
 }
 
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);  
+//디폴트가 false
+
+function mouseMoveHandler(e){
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if(relativeX > 0 && relativeX < canvas.width){
+        paddleX = relativeX - paddleWidth/2;
+    }
+}
+
+//relativeX 
 
 function keyDownHandler(e){
     if(e.key == "Right" || e.key == "ArrowRight"){
@@ -49,6 +64,40 @@ function keyUpHandler(e){
         leftPressed = false;
     }
 }
+
+
+function collisionDetection(){
+    for(var c=0; c < brickColumnCount; c++){
+        for(var r=0; r< brickRowCount; r++){
+            var b = bricks[c][r];
+            if(b.status == 1){
+            if(x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight){
+
+                dy = -dy;
+                b.status = 0;
+                score++;
+
+                //Winning message
+                if(score == brickRowCount*brickColumnCount){
+                    alert("YOU WIN, CONGRATULATIONS!");
+                    document.location.reload();
+                    clearInterval(interval);
+
+                  //reloads the page and starts the game again once the alert button is clicked.
+                }
+            }
+            }
+        }
+    }
+}
+
+function drawScore(){
+
+    ctx.font = "16px Arial";
+    ctx.fillStyle ="black";
+    ctx.fillText("Score: "+score, 8, 20);
+}
+
 
 function drawBall(){
     //drawing code\
@@ -72,7 +121,7 @@ function drawPaddle(){
 function drawBricks() {
     for(var c=0; c < brickColumnCount; c++){  
         for(var r=0; r < brickRowCount; r++){
-
+if(bricks[c][r].status == 1){
             var brickX = (c * (brickWidth+ brickPadding)) + brickOffsetLeft;
             var brickY = (r * (brickHeight+brickPadding)) + brickOffsetTop;
             //벽돌 위치 지정
@@ -85,6 +134,7 @@ function drawBricks() {
             ctx.fillStyle="blue";
             ctx.fill();
             ctx.closePath();
+}
         }
         }
     }
@@ -94,6 +144,8 @@ function draw(){
     drawBall();
     drawPaddle();
     drawBricks();
+    collisionDetection();
+    drawScore();
   
 
     if(x + dx > canvas.width-ballRadius || x + dx < ballRadius ){
@@ -108,9 +160,9 @@ else if( y + dy > canvas.height-ballRadius){
         dy = -dy;
     }
     else{
-//    alert("GAME OVER");
-//    document.location.reload();
-//    clearInterval(interval);
+ //   alert("GAME OVER");
+   document.location.reload();
+    clearInterval(interval);
 }
 }
 
